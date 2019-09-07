@@ -6,13 +6,14 @@
 
 class Game {
 public:
+	float delta=0.0f;
+	char Hkey=0, Vkey=0;
+	bool Up=false, Down=false, Right=false, Left=false;
+
 	Game(sf::RenderWindow* app); ~Game();
-	sf::RenderWindow* App;
-	sf::Event event;
-	sf::View view1;
-	float delta;
-	char Hkey = 0, Vkey = 0;
-	bool Up, Down, Right, Left;
+	sf::RenderWindow* App = nullptr;
+	sf::Event event = sf::Event();
+	sf::View view1 = sf::View();
 
 	void Update();
 	void EventHandling();

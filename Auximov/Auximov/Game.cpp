@@ -4,6 +4,8 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setCenter(sf::Vector2f((float)(App->getSize().x / 2), (float)(App->getSize().y / 2)));
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 
+
+
 }
 
 void Game::Update() {
