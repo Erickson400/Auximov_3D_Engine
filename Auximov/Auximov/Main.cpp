@@ -5,11 +5,11 @@
 #include "Game.h"
 
 int main(int argc, char** argv) {
-	sf::RenderWindow* App = new sf::RenderWindow(sf::VideoMode(1300, 700), "Sample_Title", sf::Style::Titlebar | sf::Style::Close);
+	sf::RenderWindow* App = new sf::RenderWindow(sf::VideoMode(1300, 700), "Auximov_3D_Engine", sf::Style::Titlebar | sf::Style::Close);
 	App->setFramerateLimit(60);
 	App->setKeyRepeatEnabled(false);
-
 	Game* game = new Game(App);
+
 	while (App->isOpen()) {
 		sf::Clock timer;
 		sf::Time elapsed1 = timer.getElapsedTime();
