@@ -10,7 +10,8 @@ class Game {
 public:
 	float delta=0.0f;
 	char Hkey=0, Vkey=0;
-	bool Up=false, Down=false, Right=false, Left=false;
+	bool Up=false, Down=false, Right=false, Left=false, Shift=false, Space=false;
+	bool LookUp = false, LookDown = false, LookLeft = false, LookRight = false;
 
 	Game(sf::RenderWindow* app); ~Game();
 	sf::RenderWindow* App = nullptr;
@@ -18,7 +19,7 @@ public:
 	sf::View view1 = sf::View();
 
 	sf::Texture texture;
-	Camera* camera = new Camera(sf::Vector3f(0,0,-4), 0, *App);
+	Camera* camera = new Camera(sf::Vector3f(0,0,-4), *App);
 	std::vector<Point> points;
 
 	void Update();
