@@ -18,7 +18,7 @@ public:
 	sf::View view1 = sf::View();
 
 	sf::Texture texture;
-	Camera* camera = new Camera(sf::Vector3f(1,0,-4), 0, *App);
+	Camera* camera = new Camera(sf::Vector3f(0,0,-4), 0, *App);
 	std::vector<Point> points;
 
 	void Update();

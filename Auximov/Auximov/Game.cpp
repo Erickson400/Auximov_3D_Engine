@@ -4,7 +4,7 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setCenter(sf::Vector2f(0,0));
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 
-	texture.loadFromFile("Media/Dot.png");
+	texture.loadFromFile("Media/moon.png");
 
 	//Bottom
 	for (int i = 0; i < 10; i++) {
@@ -21,20 +21,19 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 		points.push_back(Point(sf::Vector3f(-1, -1, (i * 0.2) - 1), *camera, texture));
 	}
 	//Pillards
-	for (int i = 0; i < 20; i++) {
-		points.push_back(Point(sf::Vector3f(1, (i * 0.1) - 1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(1, (i * 0.1) - 1, -1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, (i * 0.1) - 1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, (i * 0.1) - 1, -1), *camera, texture));
+	for (int i = 0; i < 10; i++) {
+		points.push_back(Point(sf::Vector3f(1, (i * 0.2) - 1, 1), *camera, texture));
+		points.push_back(Point(sf::Vector3f(1, (i * 0.2) - 1, -1), *camera, texture));
+		points.push_back(Point(sf::Vector3f(-1, (i * 0.2) - 1, 1), *camera, texture));
+		points.push_back(Point(sf::Vector3f(-1, (i * 0.2) - 1, -1), *camera, texture));
 	}
 	
-}
+	points.push_back(Point(sf::Vector3f(0, 0, -2), *camera, texture));
+}		
 
 void Game::Update() {
-	for (Point& point : points) {
-		point.Position.z -= 0.005;
-	}
-
+	camera->Position.x -= 0.001;
+	camera->Position.z += 0.005;
 }
 
 void Game::Rendering() {
