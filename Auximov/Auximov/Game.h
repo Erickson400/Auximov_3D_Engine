@@ -9,6 +9,7 @@
 class Game {
 public:
 	float delta=0.0f;
+	int FPS=0;
 	char Hkey=0, Vkey=0;
 	bool Up=false, Down=false, Right=false, Left=false, Shift=false, Space=false;
 	bool LookUp = false, LookDown = false, LookLeft = false, LookRight = false;

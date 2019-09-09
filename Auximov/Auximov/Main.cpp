@@ -18,7 +18,8 @@ int main(int argc, char** argv) {
 		game->KeyCheck();
 		game->Rendering();
 		sf::Time elapsed2 = elapsed1 - timer.getElapsedTime();
-		game->delta = (float)-elapsed2.asMilliseconds();
+		game->delta = -elapsed2.asSeconds();
+		game->FPS = 1.0/timer.getElapsedTime().asSeconds();
 	}
 	delete game, App;
 	return 0;

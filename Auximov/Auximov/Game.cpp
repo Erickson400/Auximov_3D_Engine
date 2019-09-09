@@ -5,54 +5,51 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setCenter(sf::Vector2f(0,0));
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 
-	texture.loadFromFile("Media/lol2.png");
-
-	//Bottom
-	for (int i = 0; i < 20; i++) {
-		points.push_back(Point(sf::Vector3f(1, 1, (i*0.2)-1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, 1, (i * 0.2) - 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f((i * 0.2) - 1, 1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f((i * 0.2) - 1, 1, -1), *camera, texture));
-	}
-	//Top
-	for (int i = 0; i < 20; i++) {
-		points.push_back(Point(sf::Vector3f(1, -1, (i * 0.2) - 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f((i * 0.2) - 1, -1, -1), *camera, texture));
-		points.push_back(Point(sf::Vector3f((i * 0.2) - 1, -1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, -1, (i * 0.2) - 1), *camera, texture));
-	}
-	//Pillards
-	for (int i = 0; i < 20; i++) {
-		points.push_back(Point(sf::Vector3f(1, (i * 0.2) - 1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(1, (i * 0.2) - 1, -1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, (i * 0.2) - 1, 1), *camera, texture));
-		points.push_back(Point(sf::Vector3f(-1, (i * 0.2) - 1, -1), *camera, texture));
-	}
+	texture.loadFromFile("Media/moon.png");
 	
-	points.push_back(Point(sf::Vector3f(0, 0, -2), *camera, texture));
+
+	float offset = 0.05;
+	float count = 0;
+	float curveOffset = 10;
+	for (int t = 0; t < 200; t++) {
+		count += 0.1;
+		points.push_back(Point(sf::Vector3f(t * offset, 1* offset*(sin(count)* curveOffset), 1 * offset * (cos(count)* curveOffset)), *camera, texture));
+			
+	}
+
+	//for (int i = 0; i < 5; i++) {
+	//	for (int j = 0; j < 5; j++) {
+	//		for (int t = 0; t < 5; t++) {
+	//			points.push_back(Point(sf::Vector3f(i * offset, t* offset, j * offset), *camera, texture));
+	//		}
+	//	}
+	//}
+
 }		
 
 void Game::Update() {
-	float RotateSpeed = 0.01;
+	std::cout << FPS << std::endl;
+	float RotateSpeed = 1*delta;
+	float moveSpeed = 1* delta;
 	if (LookLeft)camera->angle.y += RotateSpeed;
 	if(LookRight)camera->angle.y -= RotateSpeed;
 	if (LookUp)camera->angle.x -= RotateSpeed;
 	if (LookDown)camera->angle.x += RotateSpeed;
 
-	camera->Position.z += (cos(camera->angle.y) * 0.03) * (float)Vkey;
-	camera->Position.x -= (sin(camera->angle.y) * 0.03) * (float)Vkey;
+	camera->Position.z += (cos(camera->angle.y) * moveSpeed) * (float)Vkey;
+	camera->Position.x -= (sin(camera->angle.y) * moveSpeed) * (float)Vkey;
 
 	if (Right) {
-		camera->Position.z += (cos(camera->angle.y-(PI/2)) * 0.03);
-		camera->Position.x -= (sin(camera->angle.y-(PI/2)) * 0.03);
+		camera->Position.z += (cos(camera->angle.y-(PI/2)) * moveSpeed);
+		camera->Position.x -= (sin(camera->angle.y-(PI/2)) * moveSpeed);
 	}
 	if (Left) {
-		camera->Position.z += (cos(camera->angle.y + (PI / 2)) * 0.03);
-		camera->Position.x -= (sin(camera->angle.y + (PI / 2)) * 0.03);
+		camera->Position.z += (cos(camera->angle.y + (PI / 2)) * moveSpeed);
+		camera->Position.x -= (sin(camera->angle.y + (PI / 2)) * moveSpeed);
 	}
 
-	if (Shift) camera->Position.y += 0.009;
-	if (Space) camera->Position.y -= 0.009;
+	if (Shift) camera->Position.y += moveSpeed;
+	if (Space) camera->Position.y -= moveSpeed;
 }
 
 void Game::Rendering() {
