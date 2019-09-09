@@ -4,59 +4,33 @@
 Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setCenter(sf::Vector2f(0,0));
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
-
-	texture.loadFromFile("Media/moon.png");
 	
+	sf::Mouse::setPosition(sf::Vector2i(App->getSize().x/2, App->getSize().y/2), *App);
 
-	float offset = 0.05;
-	float count = 0;
-	float curveOffset = 10;
-	for (int t = 0; t < 200; t++) {
-		count += 0.1;
-		points.push_back(Point(sf::Vector3f(t * offset, 1* offset*(sin(count)* curveOffset), 1 * offset * (cos(count)* curveOffset)), *camera, texture));
-			
+	texture->loadFromFile("Media/moon.png");
+	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, camera, *texture);
+
+
+	for (Point& point : MyActor->points) {
+		point.Position.x *= 1;
+		point.Position.y *= 1;
+		point.Position.z *= 1;
 	}
-
-	//for (int i = 0; i < 5; i++) {
-	//	for (int j = 0; j < 5; j++) {
-	//		for (int t = 0; t < 5; t++) {
-	//			points.push_back(Point(sf::Vector3f(i * offset, t* offset, j * offset), *camera, texture));
-	//		}
-	//	}
-	//}
-
+	//points.push_back(Point(sf::Vector3f(0,0,0), *camera, *texture));
 }		
 
 void Game::Update() {
-	std::cout << FPS << std::endl;
-	float RotateSpeed = 1*delta;
-	float moveSpeed = 1* delta;
-	if (LookLeft)camera->angle.y += RotateSpeed;
-	if(LookRight)camera->angle.y -= RotateSpeed;
-	if (LookUp)camera->angle.x -= RotateSpeed;
-	if (LookDown)camera->angle.x += RotateSpeed;
+	FreeCameraControls();
 
-	camera->Position.z += (cos(camera->angle.y) * moveSpeed) * (float)Vkey;
-	camera->Position.x -= (sin(camera->angle.y) * moveSpeed) * (float)Vkey;
-
-	if (Right) {
-		camera->Position.z += (cos(camera->angle.y-(PI/2)) * moveSpeed);
-		camera->Position.x -= (sin(camera->angle.y-(PI/2)) * moveSpeed);
-	}
-	if (Left) {
-		camera->Position.z += (cos(camera->angle.y + (PI / 2)) * moveSpeed);
-		camera->Position.x -= (sin(camera->angle.y + (PI / 2)) * moveSpeed);
-	}
-
-	if (Shift) camera->Position.y += moveSpeed;
-	if (Space) camera->Position.y -= moveSpeed;
 }
 
 void Game::Rendering() {
 	App->clear();
 	App->setView(view1);
 
-	for (Point &point : points) {
+	MyActor->Render();
+
+	for (Point& point : points) {
 		point.Render();
 	}
 
@@ -93,6 +67,11 @@ void Game::EventHandling() {
 		case sf::Keyboard::Down: LookDown = false; break;
 		case sf::Keyboard::Right: LookRight = false; break;
 		}break;
+	case sf::Event::MouseMoved:
+		MouseX = sf::Mouse::getPosition(*App).x - (float)App->getSize().x / 2;
+		MouseY = sf::Mouse::getPosition(*App).y - (float)App->getSize().y / 2;
+		sf::Mouse::setPosition(sf::Vector2i(App->getSize().x / 2, App->getSize().y / 2), *App);
+		break;
 	}
 }
 
@@ -125,10 +104,33 @@ void Game::KeyCheck() {
 }
 
 
+void Game::FreeCameraControls() {
+	float RotateSpeed = 0.03 * delta;
+	float moveSpeed = 4 * delta;
 
+	camera->Position.z += (cos(camera->angle.y) * moveSpeed) * (float)Vkey;
+	camera->Position.x -= (sin(camera->angle.y) * moveSpeed) * (float)Vkey;
 
+	if (Right) {
+		camera->Position.z += (cos(camera->angle.y - (PI / 2)) * moveSpeed);
+		camera->Position.x -= (sin(camera->angle.y - (PI / 2)) * moveSpeed);
+	}
+	if (Left) {
+		camera->Position.z += (cos(camera->angle.y + (PI / 2)) * moveSpeed);
+		camera->Position.x -= (sin(camera->angle.y + (PI / 2)) * moveSpeed);
+	}
 
+	if (Shift) camera->Position.y += moveSpeed;
+	if (Space) camera->Position.y -= moveSpeed;
 
+	camera->angle.y -= RotateSpeed * MouseX;
+	camera->angle.x += RotateSpeed * MouseY;
+	MouseY = 0; MouseX = 0;
+
+	if (LookUp)camera->angle.x -= RotateSpeed;
+	if (LookDown)camera->angle.x += RotateSpeed;
+
+}
 
 
 
@@ -141,5 +143,5 @@ void Game::KeyCheck() {
 Game::~Game() {
 	App->close();
 	points.clear();
-	delete  camera, App;
+	delete  MyActor, camera, App;
 }
