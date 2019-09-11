@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 		sf::Time elapsed1 = timer.getElapsedTime();
 		while (App->pollEvent(game->event)) { game->EventHandling(); }
 		game->Update();
-		game->KeyCheck();
+		game->AxisKeyCheck();
 		game->Rendering();
 		sf::Time elapsed2 = elapsed1 - timer.getElapsedTime();
 		game->delta = -elapsed2.asSeconds();

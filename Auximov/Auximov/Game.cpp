@@ -4,23 +4,30 @@
 Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setCenter(sf::Vector2f(0,0));
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
-	
-	sf::Mouse::setPosition(sf::Vector2i(App->getSize().x/2, App->getSize().y/2), *App);
+	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
-	texture->loadFromFile("Media/moon.png");
-	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, camera, *texture);
+	texture.loadFromFile("Media/pixel.png");
+	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, texture);
 
+	//Push Actor Points to Buffer
+	PointRenderBuffer.insert(PointRenderBuffer.end(), MyActor->verts.begin(), MyActor->verts.end());
 
-	for (Point& point : MyActor->points) {
-		point.Position.x *= 1;
-		point.Position.y *= 1;
-		point.Position.z *= 1;
-	}
-	//points.push_back(Point(sf::Vector3f(0,0,0), *camera, *texture));
+	//for (int x = 0; x < 5; x++) {
+	//	for (int y = 0; y < 5; y++) {
+	//		for (int z=0; z < 5; z++) {
+	//			PointRenderBuffer.push_back(sf::Vector3f(x,y,z));
+	//		}
+	//	}
+	//}
 }		
 
 void Game::Update() {
 	FreeCameraControls();
+	std::cout << FPS << std::endl;
+
+	for (sf::Vector3f& vert : PointRenderBuffer) {
+		vert.y += ((rand()%100)-50)*delta * 0.01;
+	}
 
 }
 
@@ -28,11 +35,8 @@ void Game::Rendering() {
 	App->clear();
 	App->setView(view1);
 
-	MyActor->Render();
-
-	for (Point& point : points) {
-		point.Render();
-	}
+	//Render Points
+	RenderSortPoints(PointRenderBuffer, 0.05);
 
 	App->display();
 }
@@ -68,14 +72,14 @@ void Game::EventHandling() {
 		case sf::Keyboard::Right: LookRight = false; break;
 		}break;
 	case sf::Event::MouseMoved:
-		MouseX = sf::Mouse::getPosition(*App).x - (float)App->getSize().x / 2;
-		MouseY = sf::Mouse::getPosition(*App).y - (float)App->getSize().y / 2;
-		sf::Mouse::setPosition(sf::Vector2i(App->getSize().x / 2, App->getSize().y / 2), *App);
+		MouseX = sf::Mouse::getPosition(*App).x - (float)ScreenCenter.x;
+		MouseY = sf::Mouse::getPosition(*App).y - (float)ScreenCenter.y;
+		sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 		break;
 	}
 }
 
-void Game::KeyCheck() {
+void Game::AxisKeyCheck() {
 	if (Up && Down) {
 		Vkey = 0;
 	}
@@ -108,27 +112,81 @@ void Game::FreeCameraControls() {
 	float RotateSpeed = 0.03 * delta;
 	float moveSpeed = 4 * delta;
 
-	camera->Position.z += (cos(camera->angle.y) * moveSpeed) * (float)Vkey;
-	camera->Position.x -= (sin(camera->angle.y) * moveSpeed) * (float)Vkey;
-
+	//Movement
+	camera.Position.z += (cos(camera.angle.y) * moveSpeed) * (float)Vkey;
+	camera.Position.x -= (sin(camera.angle.y) * moveSpeed) * (float)Vkey;
 	if (Right) {
-		camera->Position.z += (cos(camera->angle.y - (PI / 2)) * moveSpeed);
-		camera->Position.x -= (sin(camera->angle.y - (PI / 2)) * moveSpeed);
+		camera.Position.z += (cos(camera.angle.y - (PI / 2)) * moveSpeed);
+		camera.Position.x -= (sin(camera.angle.y - (PI / 2)) * moveSpeed);
 	}
 	if (Left) {
-		camera->Position.z += (cos(camera->angle.y + (PI / 2)) * moveSpeed);
-		camera->Position.x -= (sin(camera->angle.y + (PI / 2)) * moveSpeed);
+		camera.Position.z += (cos(camera.angle.y + (PI / 2)) * moveSpeed);
+		camera.Position.x -= (sin(camera.angle.y + (PI / 2)) * moveSpeed);
+	}
+	if (Shift) camera.Position.y += moveSpeed;
+	if (Space) camera.Position.y -= moveSpeed;
+
+	//Camera Angle
+	camera.angle.y -= RotateSpeed * MouseX;
+	camera.angle.x += RotateSpeed * MouseY;
+
+	if (LookUp)camera.angle.x -= RotateSpeed * 40;
+	if (LookDown)camera.angle.x += RotateSpeed * 40;
+	if (LookLeft)camera.angle.y += RotateSpeed * 40;
+	if (LookRight)camera.angle.y -= RotateSpeed * 40;
+	MouseY = 0; MouseX = 0;
+}
+
+void Game::RenderSortPoints(std::vector<sf::Vector3f>& Buffer, float SpriteResize) {
+	std::vector<sf::Vector3f> SortedBuffer;
+
+	//Get Perspective Positions
+	for (sf::Vector3f& vert : Buffer) {
+		sf::Vector3f tempPos(vert);
+		tempPos -= camera.Position;
+
+		//Y Rotation
+		sf::Vector3f RotatePosY(tempPos);
+		RotatePosY.x = ((cos(camera.angle.y) * tempPos.x) + (sin(camera.angle.y) * tempPos.z));
+		RotatePosY.z = ((-sin(camera.angle.y) * tempPos.x) + (cos(camera.angle.y) * tempPos.z));
+		//X Rotation
+		sf::Vector3f RotatePosX(RotatePosY);
+		RotatePosX.y = ((cos(camera.angle.x) * RotatePosY.y) + (-sin(camera.angle.x) * RotatePosY.z));
+		RotatePosX.z = ((sin(camera.angle.x) * RotatePosY.y) + (cos(camera.angle.x) * RotatePosY.z));
+		SortedBuffer.push_back(RotatePosX);
 	}
 
-	if (Shift) camera->Position.y += moveSpeed;
-	if (Space) camera->Position.y -= moveSpeed;
+	//Sort vector
+	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](sf::Vector3f& a, sf::Vector3f& b) {
+		return a.z > b.z;
+	});
 
-	camera->angle.y -= RotateSpeed * MouseX;
-	camera->angle.x += RotateSpeed * MouseY;
-	MouseY = 0; MouseX = 0;
+	//Render
+	for (sf::Vector3f& vert : SortedBuffer) {
+		sf::Sprite temp; temp.setTexture(texture);
+		temp.setOrigin(temp.getGlobalBounds().width / 2, temp.getGlobalBounds().height / 2);
 
-	if (LookUp)camera->angle.x -= RotateSpeed;
-	if (LookDown)camera->angle.x += RotateSpeed;
+		//Z Clipping
+		if (vert.z <= camera.FAR && vert.z >= camera.NEAR) {
+			float scale = camera.Dist(1000, vert.z) / camera.Dist(0, vert.z);
+			scale *= SpriteResize;
+			temp.setScale(scale, scale);
+
+			float ProjectedLengthX = temp.getGlobalBounds().width / 2;
+			float ProjectedLengthY = temp.getGlobalBounds().height / 2;
+			//X Clipping
+			float XPosClip = (vert.x / vert.z) * 1000;
+			if (XPosClip + ProjectedLengthX >= -650 && XPosClip - ProjectedLengthX <= 650) {
+				//Y Clipping
+				float YPosClip = (vert.y / vert.z) * 1000;
+				if (YPosClip + ProjectedLengthY >= -350 && YPosClip - ProjectedLengthY <= 350) {
+
+					temp.setPosition((vert.x / vert.z) * 1000, (vert.y / vert.z) * 1000);
+					camera.window->draw(temp);
+				}
+			}
+		}
+	}
 
 }
 
@@ -140,8 +198,17 @@ void Game::FreeCameraControls() {
 
 
 
+
+
+
+
+
+
+
+
+
 Game::~Game() {
 	App->close();
-	points.clear();
+	PointRenderBuffer.clear();
 	delete  MyActor, camera, App;
 }
