@@ -25,7 +25,7 @@ public:
 	Camera camera = Camera(sf::Vector3f(0,0,-4), *App);
 	std::vector<sf::Vector3f> PointRenderBuffer;
 
-	Model MyModel = Model("Media/mount.obj");
+	Model MyModel = Model("Media/Mesh.obj");
 	Actor* MyActor;
 
 	void FreeCameraControls();

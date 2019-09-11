@@ -6,28 +6,18 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
-	texture.loadFromFile("Media/pixel.png");
+	texture.loadFromFile("Media/moon.png");
 	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, texture);
 
 	//Push Actor Points to Buffer
 	PointRenderBuffer.insert(PointRenderBuffer.end(), MyActor->verts.begin(), MyActor->verts.end());
 
-	//for (int x = 0; x < 5; x++) {
-	//	for (int y = 0; y < 5; y++) {
-	//		for (int z=0; z < 5; z++) {
-	//			PointRenderBuffer.push_back(sf::Vector3f(x,y,z));
-	//		}
-	//	}
-	//}
 }		
 
 void Game::Update() {
 	FreeCameraControls();
 	std::cout << FPS << std::endl;
 
-	for (sf::Vector3f& vert : PointRenderBuffer) {
-		vert.y += ((rand()%100)-50)*delta * 0.01;
-	}
 
 }
 
@@ -36,7 +26,7 @@ void Game::Rendering() {
 	App->setView(view1);
 
 	//Render Points
-	RenderSortPoints(PointRenderBuffer, 0.05);
+	RenderSortPoints(PointRenderBuffer, 0.002);
 
 	App->display();
 }
