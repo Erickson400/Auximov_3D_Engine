@@ -27,7 +27,10 @@ public:
 	std::vector<BufferVector> RenderBuffer;
 
 	Model MyModel = Model("Media/mount.obj");
+	Model Man = Model("Media/Fist.obj");
+	//Model MyModel2 = Model("Media/mount.obj");
 	Actor* MyActor;
+	Actor* MyActor2;
 
 	void FreeCameraControls();
 	void RenderSortPoints(std::vector<BufferVector>& Buffer);

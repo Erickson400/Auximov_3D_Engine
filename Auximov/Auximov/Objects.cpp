@@ -13,7 +13,7 @@ public:
 	Camera(){};
 	~Camera() { delete window; };
 
-	const float NEAR = 0.1, FAR = 100; // Clipping Planes
+	const float NEAR = 0.1, FAR = 50; // Clipping Planes
 	sf::Vector3f Position = sf::Vector3f(0, 0, 0); 
 	sf::Vector3f angle = sf::Vector3f(0, 0, 0);
 	sf::RenderWindow *window = new sf::RenderWindow();
@@ -27,7 +27,6 @@ public:
 class Model {
 public:
 	Model(std::string filename) {
-		std::cout << "Model Loaded" << std::endl;
 		LoadModelFromFile(filename);
 	}
 	Model() {};
@@ -59,7 +58,6 @@ public:
 class Actor {
 public:
 	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex): texture(tex), Position(pos) {
-		std::cout << "Actor Created" << std::endl;
 		verts.clear();
 		for (sf::Vector3f &vert : modl.verts) {
 			verts.push_back(sf::Vector3f(vert.x+pos.x, -vert.y+pos.y, vert.z+pos.z));

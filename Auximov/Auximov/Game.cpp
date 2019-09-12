@@ -6,22 +6,30 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
-	texture.loadFromFile("Media/moon.png");
-	texture2.loadFromFile("Media/dot.png");
-	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, texture);
+	texture.loadFromFile("Media/dot.png");
+	texture2.loadFromFile("Media/moon.png");
+	MyActor = new Actor(sf::Vector3f(0, 2, 0), MyModel, texture);
+	MyActor2 = new Actor(sf::Vector3f(8, -0, 0), Man, texture2);
 
+	MyActor2->SpriteResize = 0.0005;
 	//Push Actor Points to Buffer
 	for (sf::Vector3f& vert : MyActor->verts) { //MyActor
 		RenderBuffer.push_back(BufferVector(vert, MyActor->texture, MyActor->SpriteResize));
 	}
-	RenderBuffer[4].texture = &texture2;
+	for (sf::Vector3f& vert : MyActor2->verts) { //MyActor
+		RenderBuffer.push_back(BufferVector(vert, MyActor2->texture, MyActor2->SpriteResize));
+	}
 
 }		
 
 void Game::Update() {
 	FreeCameraControls();
-	std::cout << FPS << std::endl;
+	//std::cout << FPS << std::endl;
 
+	//Move MyActor2 test
+	for (BufferVector& vec : RenderBuffer) {
+		if (vec.texture == &MyActor2->texture) vec.Position.z -= 0.001;
+	}
 
 }
 
@@ -204,5 +212,5 @@ void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
 Game::~Game() {
 	App->close();
 	RenderBuffer.clear();
-	delete  MyActor, camera, App;
+	delete MyActor2, MyActor, camera, App;
 }
