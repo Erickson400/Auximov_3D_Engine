@@ -21,15 +21,16 @@ public:
 	LookUp=false, LookDown=false, LookLeft=false, LookRight=false;
 	sf::Vector2i ScreenCenter = sf::Vector2i(App->getSize().x/2, App->getSize().y/2);
 	
-	sf::Texture texture = sf::Texture();
-	Camera camera = Camera(sf::Vector3f(0,0,-4), *App);
-	std::vector<sf::Vector3f> PointRenderBuffer;
+	sf::Texture texture, texture2 = sf::Texture();
 
-	Model MyModel = Model("Media/Mesh.obj");
+	Camera camera = Camera(sf::Vector3f(0,0,-4), *App);
+	std::vector<BufferVector> RenderBuffer;
+
+	Model MyModel = Model("Media/mount.obj");
 	Actor* MyActor;
 
 	void FreeCameraControls();
-	void RenderSortPoints(std::vector<sf::Vector3f>& Buffer, float SpriteResize);
+	void RenderSortPoints(std::vector<BufferVector>& Buffer);
 
 	void Update();
 	void EventHandling();

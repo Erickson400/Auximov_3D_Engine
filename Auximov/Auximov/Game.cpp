@@ -7,10 +7,14 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
 	texture.loadFromFile("Media/moon.png");
+	texture2.loadFromFile("Media/dot.png");
 	MyActor = new Actor(sf::Vector3f(0, 0, 0), MyModel, texture);
 
 	//Push Actor Points to Buffer
-	PointRenderBuffer.insert(PointRenderBuffer.end(), MyActor->verts.begin(), MyActor->verts.end());
+	for (sf::Vector3f& vert : MyActor->verts) { //MyActor
+		RenderBuffer.push_back(BufferVector(vert, MyActor->texture, MyActor->SpriteResize));
+	}
+	RenderBuffer[4].texture = &texture2;
 
 }		
 
@@ -25,8 +29,8 @@ void Game::Rendering() {
 	App->clear();
 	App->setView(view1);
 
-	//Render Points
-	RenderSortPoints(PointRenderBuffer, 0.002);
+	//Sort & Render Points
+	RenderSortPoints(RenderBuffer);
 
 	App->display();
 }
@@ -127,12 +131,12 @@ void Game::FreeCameraControls() {
 	MouseY = 0; MouseX = 0;
 }
 
-void Game::RenderSortPoints(std::vector<sf::Vector3f>& Buffer, float SpriteResize) {
-	std::vector<sf::Vector3f> SortedBuffer;
+void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
+	std::vector<BufferVector> SortedBuffer;
 
 	//Get Perspective Positions
-	for (sf::Vector3f& vert : Buffer) {
-		sf::Vector3f tempPos(vert);
+	for (BufferVector& vert : Buffer) {
+		sf::Vector3f tempPos(vert.Position);
 		tempPos -= camera.Position;
 
 		//Y Rotation
@@ -143,35 +147,35 @@ void Game::RenderSortPoints(std::vector<sf::Vector3f>& Buffer, float SpriteResiz
 		sf::Vector3f RotatePosX(RotatePosY);
 		RotatePosX.y = ((cos(camera.angle.x) * RotatePosY.y) + (-sin(camera.angle.x) * RotatePosY.z));
 		RotatePosX.z = ((sin(camera.angle.x) * RotatePosY.y) + (cos(camera.angle.x) * RotatePosY.z));
-		SortedBuffer.push_back(RotatePosX);
+		SortedBuffer.push_back(BufferVector(RotatePosX, *vert.texture, vert.SpriteResize));
 	}
 
 	//Sort vector
-	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](sf::Vector3f& a, sf::Vector3f& b) {
-		return a.z > b.z;
+	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](BufferVector& a, BufferVector& b) {
+		return a.Position.z > b.Position.z;
 	});
 
 	//Render
-	for (sf::Vector3f& vert : SortedBuffer) {
-		sf::Sprite temp; temp.setTexture(texture);
+	for (BufferVector& vert : SortedBuffer) {
+		sf::Sprite temp; temp.setTexture(*vert.texture);
 		temp.setOrigin(temp.getGlobalBounds().width / 2, temp.getGlobalBounds().height / 2);
 
 		//Z Clipping
-		if (vert.z <= camera.FAR && vert.z >= camera.NEAR) {
-			float scale = camera.Dist(1000, vert.z) / camera.Dist(0, vert.z);
-			scale *= SpriteResize;
+		if (vert.Position.z <= camera.FAR && vert.Position.z >= camera.NEAR) {
+			float scale = camera.Dist(1000, vert.Position.z) / camera.Dist(0, vert.Position.z);
+			scale *= vert.SpriteResize;
 			temp.setScale(scale, scale);
 
 			float ProjectedLengthX = temp.getGlobalBounds().width / 2;
 			float ProjectedLengthY = temp.getGlobalBounds().height / 2;
 			//X Clipping
-			float XPosClip = (vert.x / vert.z) * 1000;
+			float XPosClip = (vert.Position.x / vert.Position.z) * 1000;
 			if (XPosClip + ProjectedLengthX >= -650 && XPosClip - ProjectedLengthX <= 650) {
 				//Y Clipping
-				float YPosClip = (vert.y / vert.z) * 1000;
+				float YPosClip = (vert.Position.y / vert.Position.z) * 1000;
 				if (YPosClip + ProjectedLengthY >= -350 && YPosClip - ProjectedLengthY <= 350) {
 
-					temp.setPosition((vert.x / vert.z) * 1000, (vert.y / vert.z) * 1000);
+					temp.setPosition((vert.Position.x / vert.Position.z) * 1000, (vert.Position.y / vert.Position.z) * 1000);
 					camera.window->draw(temp);
 				}
 			}
@@ -199,6 +203,6 @@ void Game::RenderSortPoints(std::vector<sf::Vector3f>& Buffer, float SpriteResiz
 
 Game::~Game() {
 	App->close();
-	PointRenderBuffer.clear();
+	RenderBuffer.clear();
 	delete  MyActor, camera, App;
 }

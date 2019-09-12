@@ -7,7 +7,7 @@
 #include <fstream>
 #include <strstream>
 
-struct Camera {
+class Camera {
 public:
 	Camera(sf::Vector3f Pos, sf::RenderWindow &win) : window(&win), Position(Pos) {};
 	Camera(){};
@@ -58,27 +58,34 @@ public:
 
 class Actor {
 public:
-	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex): texture(tex), Position(pos), model(modl) {
+	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex): texture(tex), Position(pos) {
 		std::cout << "Actor Created" << std::endl;
 		verts.clear();
-		for (sf::Vector3f &vert : model.verts) {
-			verts.push_back(sf::Vector3f(vert.x, -vert.y, vert.z));
+		for (sf::Vector3f &vert : modl.verts) {
+			verts.push_back(sf::Vector3f(vert.x+pos.x, -vert.y+pos.y, vert.z+pos.z));
 		};
 	}
-	Actor(){};
 
 	std::vector<sf::Vector3f> verts;
-	sf::Texture texture = sf::Texture();
+	sf::Texture texture;
 	sf::Vector3f Position;
-	Model model;
+	float SpriteResize = 0.001;
 
-	void setModel(Model modl) {
+	void setModel(Model& modl) {
 		verts.clear();
-		model = modl;
-		for (sf::Vector3f& vert : model.verts) {
-			verts.push_back(vert);
+		for (sf::Vector3f& vert : modl.verts) {
+			verts.push_back(sf::Vector3f(vert.x + Position.x, -vert.y + Position.y, vert.z + Position.z));
 		};
 	}
 
 };
 
+struct BufferVector {
+	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize) : SpriteResize(Resize), texture(&tex), Position(vert) {};
+	BufferVector(sf::Vector3f& vert, sf::Texture& tex) : texture(&tex), Position(vert) {};
+	//BufferVector(sf::Vector3f& vert) : Position(&vert) {};
+
+	sf::Vector3f Position;
+	sf::Texture *texture;
+	float SpriteResize = 0.001;
+};
