@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
 	sf::RenderWindow* App = new sf::RenderWindow(sf::VideoMode(1300, 700), "Auximov_3D_Engine", sf::Style::Titlebar | sf::Style::Close);
 	App->setFramerateLimit(60);
 	App->setKeyRepeatEnabled(false);
+	App->setMouseCursorVisible(false);
 	Game* game = new Game(App);
 
 	while (App->isOpen()) {

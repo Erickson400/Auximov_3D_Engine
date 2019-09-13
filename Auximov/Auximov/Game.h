@@ -21,16 +21,16 @@ public:
 	LookUp=false, LookDown=false, LookLeft=false, LookRight=false;
 	sf::Vector2i ScreenCenter = sf::Vector2i(App->getSize().x/2, App->getSize().y/2);
 	
-	sf::Texture texture, texture2 = sf::Texture();
-
+	sf::Texture texture = sf::Texture();
 	Camera camera = Camera(sf::Vector3f(0,0,-4), *App);
 	std::vector<BufferVector> RenderBuffer;
 
-	Model MyModel = Model("Media/mount.obj");
-	Model Man = Model("Media/Fist.obj");
-	//Model MyModel2 = Model("Media/mount.obj");
-	Actor* MyActor;
-	Actor* MyActor2;
+	Model Frame1 = Model("Media/Frames/Frame01.obj");
+	Model Frame2 = Model("Media/Frames/Frame02.obj");
+	Model Frame3 = Model("Media/Frames/Frame03.obj");
+	Model Frame4 = Model("Media/Frames/Frame04.obj");
+	Actor* StickFigure;
+	float count = 0;
 
 	void FreeCameraControls();
 	void RenderSortPoints(std::vector<BufferVector>& Buffer);

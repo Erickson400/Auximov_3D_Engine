@@ -10,13 +10,11 @@
 class Camera {
 public:
 	Camera(sf::Vector3f Pos, sf::RenderWindow &win) : window(&win), Position(Pos) {};
-	Camera(){};
-	~Camera() { delete window; };
 
 	const float NEAR = 0.1, FAR = 50; // Clipping Planes
 	sf::Vector3f Position = sf::Vector3f(0, 0, 0); 
 	sf::Vector3f angle = sf::Vector3f(0, 0, 0);
-	sf::RenderWindow *window = new sf::RenderWindow();
+	sf::RenderWindow *window;
 
 	float Dist(float z1, float z2) {
 		//TopLength / BottomLength = SpriteScale
@@ -81,9 +79,11 @@ public:
 struct BufferVector {
 	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize) : SpriteResize(Resize), texture(&tex), Position(vert) {};
 	BufferVector(sf::Vector3f& vert, sf::Texture& tex) : texture(&tex), Position(vert) {};
-	//BufferVector(sf::Vector3f& vert) : Position(&vert) {};
 
 	sf::Vector3f Position;
 	sf::Texture *texture;
 	float SpriteResize = 0.001;
 };
+
+
+

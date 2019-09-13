@@ -7,17 +7,12 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
 	texture.loadFromFile("Media/dot.png");
-	texture2.loadFromFile("Media/moon.png");
-	MyActor = new Actor(sf::Vector3f(0, 2, 0), MyModel, texture);
-	MyActor2 = new Actor(sf::Vector3f(8, -0, 0), Man, texture2);
+	StickFigure = new Actor(sf::Vector3f(0, 0.2, 0), Frame1, texture);
+	StickFigure->SpriteResize = 0.005;
 
-	MyActor2->SpriteResize = 0.0005;
 	//Push Actor Points to Buffer
-	for (sf::Vector3f& vert : MyActor->verts) { //MyActor
-		RenderBuffer.push_back(BufferVector(vert, MyActor->texture, MyActor->SpriteResize));
-	}
-	for (sf::Vector3f& vert : MyActor2->verts) { //MyActor
-		RenderBuffer.push_back(BufferVector(vert, MyActor2->texture, MyActor2->SpriteResize));
+	for (sf::Vector3f& vert : StickFigure->verts) { //StickFigure
+		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize));
 	}
 
 }		
@@ -25,12 +20,27 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 void Game::Update() {
 	FreeCameraControls();
 	//std::cout << FPS << std::endl;
+	count+=delta;
 
-	//Move MyActor2 test
-	for (BufferVector& vec : RenderBuffer) {
-		if (vec.texture == &MyActor2->texture) vec.Position.z -= 0.001;
+	switch ((int)count) {
+	case 1: StickFigure->setModel(Frame1); break;
+	case 2: StickFigure->setModel(Frame2); break;
+	case 3: StickFigure->setModel(Frame3); break;
+	case 4: StickFigure->setModel(Frame4); break;
+	case 5: count = 1; break;
 	}
 
+	RenderBuffer.clear();
+	for (sf::Vector3f& vert : StickFigure->verts) { //StickFigure
+		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize));
+	}
+
+	for (char x=0; x < 35; x++) {
+		for (char y=0; y < 35; y++) {
+			sf::Vector3f Pos(x*2.6, 1, y*2.6);
+			RenderBuffer.push_back(BufferVector(Pos, texture, StickFigure->SpriteResize));
+		}
+	}
 }
 
 void Game::Rendering() {
@@ -212,5 +222,5 @@ void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
 Game::~Game() {
 	App->close();
 	RenderBuffer.clear();
-	delete MyActor2, MyActor, camera, App;
+	delete App;
 }
