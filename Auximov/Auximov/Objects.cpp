@@ -55,7 +55,7 @@ public:
 
 class Actor {
 public:
-	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex): texture(tex), Position(pos) {
+	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex, uint16_t id): ID(id), texture(tex), Position(pos) {
 		verts.clear();
 		for (sf::Vector3f &vert : modl.verts) {
 			verts.push_back(sf::Vector3f(vert.x+pos.x, -vert.y+pos.y, vert.z+pos.z));
@@ -66,6 +66,7 @@ public:
 	sf::Texture texture;
 	sf::Vector3f Position;
 	float SpriteResize = 0.001;
+	uint16_t ID;
 
 	void setModel(Model& modl) {
 		verts.clear();
@@ -77,12 +78,13 @@ public:
 };
 
 struct BufferVector {
+	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize, uint16_t& id) : ID(id), SpriteResize(Resize), texture(&tex), Position(vert) {};
 	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize) : SpriteResize(Resize), texture(&tex), Position(vert) {};
-	BufferVector(sf::Vector3f& vert, sf::Texture& tex) : texture(&tex), Position(vert) {};
 
 	sf::Vector3f Position;
 	sf::Texture *texture;
 	float SpriteResize = 0.001;
+	uint16_t ID = 0; //0 means static and belongs to the world
 };
 
 

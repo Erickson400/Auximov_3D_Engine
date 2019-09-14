@@ -7,47 +7,64 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
 	texture.loadFromFile("Media/dot.png");
-	StickFigure = new Actor(sf::Vector3f(0, 0.2, 0), Frame1, texture);
+	StickFigure = new Actor(sf::Vector3f(0, 0.2, 0), Frame1, texture, 1);
 	StickFigure->SpriteResize = 0.005;
 
 	//Push Actor Points to Buffer
 	for (sf::Vector3f& vert : StickFigure->verts) { //StickFigure
-		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize));
+		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize, StickFigure->ID));
 	}
 
-}		
-
-void Game::Update() {
-	FreeCameraControls();
-	//std::cout << FPS << std::endl;
-	count+=delta;
-
-	switch ((int)count) {
-	case 1: StickFigure->setModel(Frame1); break;
-	case 2: StickFigure->setModel(Frame2); break;
-	case 3: StickFigure->setModel(Frame3); break;
-	case 4: StickFigure->setModel(Frame4); break;
-	case 5: count = 1; break;
-	}
-
-	RenderBuffer.clear();
-	for (sf::Vector3f& vert : StickFigure->verts) { //StickFigure
-		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize));
-	}
-
+	//Draw Floor
 	for (char x=0; x < 35; x++) {
 		for (char y=0; y < 35; y++) {
 			sf::Vector3f Pos(x*2.6, 1, y*2.6);
 			RenderBuffer.push_back(BufferVector(Pos, texture, StickFigure->SpriteResize));
 		}
 	}
+}		
+
+void Game::Update() {
+	FreeCameraControls();
+	std::cout << FPS << std::endl;
+	count+=delta;
+
+	int lastCount = (int)count;
+	if (lastCount!=count) {
+		switch ((int)count) {
+		case 0: StickFigure->setModel(Frame1); break;
+		case 1: StickFigure->setModel(Frame2); break;
+		case 2: StickFigure->setModel(Frame3); break;
+		case 3: StickFigure->setModel(Frame4); break;
+		case 4: count = 0; break;
+		}
+	}
+
+	auto iterator = std::remove_if(RenderBuffer.begin(), RenderBuffer.end(), [&](BufferVector& vector) {
+		return 	(vector.ID == StickFigure->ID);
+		});
+
+	RenderBuffer.erase(iterator, RenderBuffer.end());
+
+
+	//RenderBuffer.clear();
+	for (sf::Vector3f& vert : StickFigure->verts) { //StickFigure
+		RenderBuffer.push_back(BufferVector(vert, StickFigure->texture, StickFigure->SpriteResize, StickFigure->ID));
+	}
+
+	//for (char x=0; x < 35; x++) {
+	//	for (char y=0; y < 35; y++) {
+	//		sf::Vector3f Pos(x*2.6, 1, y*2.6);
+	//		RenderBuffer.push_back(BufferVector(Pos, texture, StickFigure->SpriteResize));
+	//	}
+	//}
 }
 
 void Game::Rendering() {
 	App->clear();
 	App->setView(view1);
 
-	//Sort & Render Points
+	//Sort & Render Points Buffer
 	RenderSortPoints(RenderBuffer);
 
 	App->display();
@@ -165,7 +182,7 @@ void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
 		sf::Vector3f RotatePosX(RotatePosY);
 		RotatePosX.y = ((cos(camera.angle.x) * RotatePosY.y) + (-sin(camera.angle.x) * RotatePosY.z));
 		RotatePosX.z = ((sin(camera.angle.x) * RotatePosY.y) + (cos(camera.angle.x) * RotatePosY.z));
-		SortedBuffer.push_back(BufferVector(RotatePosX, *vert.texture, vert.SpriteResize));
+		SortedBuffer.push_back(BufferVector(RotatePosX, *vert.texture, vert.SpriteResize, vert.ID));
 	}
 
 	//Sort vector
