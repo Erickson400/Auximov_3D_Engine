@@ -10,11 +10,6 @@
 
 // Add NameSpace
 
-namespace dot {
-	int test = 0;
-}
-
-
 class Camera {
 public:
 	Camera(sf::Vector3f Pos, sf::RenderWindow &win) : window(&win), Position(Pos) {};
