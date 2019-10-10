@@ -19,14 +19,23 @@ public:
 	float MouseX = 0, MouseY = 0;
 	bool Up=false, Down=false, Right=false, Left=false, Shift=false, Space=false,
 	LookUp=false, LookDown=false, LookLeft=false, LookRight=false;
+	float HKeyBG = 0;
 	sf::Vector2i ScreenCenter = sf::Vector2i(App->getSize().x/2, App->getSize().y/2);
 	
-	sf::Texture texture = sf::Texture();
-	Camera camera = Camera(sf::Vector3f(0,0,-4), *App);
-	std::vector<BufferVector> RenderBuffer;
+	sf::Texture tree = sf::Texture();
+	sf::Texture cloud = sf::Texture();
+	sf::Texture BGTex = sf::Texture();
+	sf::Texture dot = sf::Texture();
+	sf::Sprite BG = sf::Sprite();
+
+	ax::Camera camera = ax::Camera(sf::Vector3f(0,0,-4), *App);
+	std::vector<ax::BufferVector> RenderBuffer;
+
+	ax::Model mesh = ax::Model("Media/mount.obj");
+	ax::Actor player = ax::Actor();
 
 	void FreeCameraControls();
-	void RenderSortPoints(std::vector<BufferVector>& Buffer);
+	void RenderSortPoints(std::vector<ax::BufferVector>& Buffer);
 
 	void Update();
 	void EventHandling();

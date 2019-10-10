@@ -6,19 +6,53 @@ Game::Game(sf::RenderWindow* app) : App(app) {
 	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
 	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
 
-	texture.loadFromFile("Media/map.png"); texture.setRepeated(true);
+	tree.loadFromFile("Media/tree.png");
+	cloud.loadFromFile("Media/cloud.png");
+	BGTex.loadFromFile("Media/BG1.png"); BGTex.setRepeated(true);
+	dot.loadFromFile("Media/grass.png");
 
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(4, -3, 2), cloud, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(-2, -3, 7), cloud, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(5, -3, 0), cloud, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(3, -3, -1), cloud, 0.001));
+
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(-4, 1, -3), tree, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(3, 1, 5), tree, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(0, 1, 0), tree, 0.001));
+	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(2, 1, -2), tree, 0.001));
+
+	player = ax::Actor(sf::Vector3f(2,-1,0), mesh, dot, 1);
+	player.SpriteResize = 0.0003;
+	player.Scale(1);
+
+	//player.pushToBuffer(RenderBuffer);
+
+	float offset = 0.09;
+	for (int x = -20; x < 30; x++) {		
+		for (int y = -20; y < 30; y++) {
+			RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(x*offset, 2, y*offset), dot, 0.0003));
+		}
+	}
+
+
+	BG.setPosition(-ScreenCenter.x, -ScreenCenter.y);
+	BG.setTexture(BGTex);
 }		
 
 void Game::Update() {
 	FreeCameraControls();
 	std::cout << FPS << std::endl;
+	BG.setPosition(BG.getPosition().x, (-camera.angle.x*1000)-(BG.getGlobalBounds().height/2)-20);
 
+	HKeyBG += Hkey * 0.6;
+	BG.setTextureRect(sf::IntRect((-camera.angle.y*1000)+HKeyBG, 0, 1300, 4000));
 }
 
 void Game::Rendering() {
 	App->clear();
 	App->setView(view1);
+
+	App->draw(BG);
 
 	//Sort & Render Points Buffer
 	RenderSortPoints(RenderBuffer);
@@ -118,14 +152,17 @@ void Game::FreeCameraControls() {
 	if (LookDown)camera.angle.x += RotateSpeed * 40;
 	if (LookLeft)camera.angle.y += RotateSpeed * 40;
 	if (LookRight)camera.angle.y -= RotateSpeed * 40;
+
+	if (camera.angle.x >= PI / 2)camera.angle.x = PI / 2;
+	if (camera.angle.x <= -PI / 2)camera.angle.x = -PI / 2;
 	MouseY = 0; MouseX = 0;
 }
 
-void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
-	std::vector<BufferVector> SortedBuffer;
+void Game::RenderSortPoints(std::vector<ax::BufferVector>& Buffer) {
+	std::vector<ax::BufferVector> SortedBuffer;
 
 	//Get Perspective Positions
-	for (BufferVector& vert : Buffer) {
+	for (ax::BufferVector& vert : Buffer) {
 		sf::Vector3f tempPos(vert.Position);
 		tempPos -= camera.Position;
 
@@ -137,17 +174,18 @@ void Game::RenderSortPoints(std::vector<BufferVector>& Buffer) {
 		sf::Vector3f RotatePosX(RotatePosY);
 		RotatePosX.y = ((cos(camera.angle.x) * RotatePosY.y) + (-sin(camera.angle.x) * RotatePosY.z));
 		RotatePosX.z = ((sin(camera.angle.x) * RotatePosY.y) + (cos(camera.angle.x) * RotatePosY.z));
-		SortedBuffer.push_back(BufferVector(RotatePosX, *vert.texture, vert.SpriteResize, vert.ID));
+		SortedBuffer.push_back(ax::BufferVector(RotatePosX, *vert.texture, vert.SpriteResize, vert.ID));
 	}
 
 	//Sort vector
-	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](BufferVector& a, BufferVector& b) {
+	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](ax::BufferVector& a, ax::BufferVector& b) {
 		return a.Position.z > b.Position.z;
 	});
 
 	//Render
-	for (BufferVector& vert : SortedBuffer) {
-		sf::Sprite temp; temp.setTexture(*vert.texture);
+	for (ax::BufferVector& vert : SortedBuffer) {
+		sf::Sprite temp;
+		temp.setTexture(*vert.texture);
 		temp.setOrigin(temp.getGlobalBounds().width / 2, temp.getGlobalBounds().height / 2);
 
 		//Z Clipping

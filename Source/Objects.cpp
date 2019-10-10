@@ -8,86 +8,98 @@
 #include <strstream>
 #define PI 3.14159265358979323846
 
-// Add NameSpace
+namespace ax {
+	class Camera {
+	public:
+		Camera(sf::Vector3f Pos, sf::RenderWindow& win) : window(&win), Position(Pos) {};
 
-class Camera {
-public:
-	Camera(sf::Vector3f Pos, sf::RenderWindow &win) : window(&win), Position(Pos) {};
+		const float NEAR = 0.1, FAR = 100; // Clipping Planes
+		sf::Vector3f Position = sf::Vector3f(0, 0, 0);
+		sf::Vector3f angle = sf::Vector3f(0, 0, 0);
+		sf::RenderWindow* window;
 
-	const float NEAR = 0.1, FAR = 100; // Clipping Planes
-	sf::Vector3f Position = sf::Vector3f(0, 0, 0); 
-	sf::Vector3f angle = sf::Vector3f(0, 0, 0);
-	sf::RenderWindow *window;
+		float Dist(float z1, float z2) {
+			//TopLength / BottomLength = SpriteScale
+			return abs(z1 - z2);
+		}
+	};
 
-	float Dist(float z1, float z2) {
-		//TopLength / BottomLength = SpriteScale
-		return abs(z1 - z2);
-	}
-};
+	class Model {
+	public:
+		Model(std::string filename) {
+			LoadModelFromFile(filename);
+		}
+		Model() {};
+		std::vector<sf::Vector3f> verts;
 
-class Model {
-public:
-	Model(std::string filename) {
-		LoadModelFromFile(filename);
-	}
-	Model() {};
-	std::vector<sf::Vector3f> verts;
+		bool LoadModelFromFile(std::string filename) {
+			verts.clear();
+			std::ifstream file(filename);
+			if (!file.is_open()) return false;
 
-	bool LoadModelFromFile(std::string filename) {
-		verts.clear();
-		std::ifstream file(filename);
-		if (!file.is_open()) return false;
-		
-		while (!file.eof()) {
-			char line[128];
-			file.getline(line, 128);
+			while (!file.eof()) {
+				char line[128];
+				file.getline(line, 128);
 
-			std::strstream s;
-			s << line;
+				std::strstream s;
+				s << line;
 
-			char junk;
-			if (line[0] == 'v'&& line[1] == ' ') {
-				sf::Vector3f v;
-				s >> junk >> v.x >> v.y >> v.z;
-				verts.push_back(v);
+				char junk;
+				if (line[0] == 'v' && line[1] == ' ') {
+					sf::Vector3f v;
+					s >> junk >> v.x >> v.y >> v.z;
+					verts.push_back(v);
+				}
+			}
+			return true;
+		}
+	};
+
+	struct BufferVector {
+		BufferVector(sf::Vector3f vert, sf::Texture& tex, float Resize, uint16_t& id) : ID(id), SpriteResize(Resize), texture(&tex), Position(vert) {};
+		BufferVector(sf::Vector3f vert, sf::Texture& tex, float Resize) : SpriteResize(Resize), texture(&tex), Position(vert) {};
+
+		sf::Vector3f Position;
+		sf::Texture* texture;
+		float SpriteResize = 0.001;
+		uint16_t ID = 0; //0 means static and belongs to the world
+	};
+
+	class Actor {
+	public:
+		Actor(sf::Vector3f pos, Model& modl, sf::Texture& tex, uint16_t id) : ID(id), texture(tex), Position(pos) {
+			verts.clear();
+			for (sf::Vector3f& vert : modl.verts) {
+				verts.push_back(sf::Vector3f(vert.x + pos.x, -vert.y + pos.y, vert.z + pos.z));
+			};
+		}
+		Actor() {};
+		std::vector<sf::Vector3f> verts;
+		sf::Texture texture;
+		sf::Vector3f Position;
+		float SpriteResize = 0.001;
+		uint16_t ID;
+
+		void Scale(float size) {
+			for (sf::Vector3f& vect : verts) {
+				vect = sf::Vector3f(vect.x*size, vect.y*size, vect.z*size);
 			}
 		}
-		return true;
-	}
-};
+		void setModel(Model& modl) {
+			verts.clear();
+			for (sf::Vector3f& vert : modl.verts) {
+				verts.push_back(sf::Vector3f(vert.x + Position.x, -vert.y + Position.y, vert.z + Position.z));
+			};
+		}
+		void pushToBuffer(std::vector<BufferVector>& buffer) {
+			for (sf::Vector3f& vect : verts) {
+				buffer.push_back(ax::BufferVector(vect, texture, SpriteResize));
+			}
+		}
+	};
 
-class Actor {
-public:
-	Actor(sf::Vector3f pos, Model &modl, sf::Texture& tex, uint16_t id): ID(id), texture(tex), Position(pos) {
-		verts.clear();
-		for (sf::Vector3f &vert : modl.verts) {
-			verts.push_back(sf::Vector3f(vert.x+pos.x, -vert.y+pos.y, vert.z+pos.z));
-		};
-	}
 
-	std::vector<sf::Vector3f> verts;
-	sf::Texture texture;
-	sf::Vector3f Position;
-	float SpriteResize = 0.001;
-	uint16_t ID;
 
-	void setModel(Model& modl) {
-		verts.clear();
-		for (sf::Vector3f& vert : modl.verts) {
-			verts.push_back(sf::Vector3f(vert.x + Position.x, -vert.y + Position.y, vert.z + Position.z));
-		};
-	}
+}
 
-};
 
-struct BufferVector {
-	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize, uint16_t& id) : ID(id), SpriteResize(Resize), texture(&tex), Position(vert) {};
-	BufferVector(sf::Vector3f& vert, sf::Texture& tex, float Resize) : SpriteResize(Resize), texture(&tex), Position(vert) {};
-
-	sf::Vector3f Position;
-	sf::Texture *texture;
-	float SpriteResize = 0.001;
-	uint16_t ID = 0; //0 means static and belongs to the world
-};
-
-	
