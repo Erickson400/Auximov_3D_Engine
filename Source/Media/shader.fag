@@ -1,0 +1,17 @@
+uniform sampler2D texture;
+uniform int lineNum;
+
+void main() 
+{
+
+	vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);
+	//pixel *= vec4(1,.5,.5,1);
+
+	if(lineNum != int(700.f*(1-gl_TexCoord[0].y))){
+		pixel *= 0;
+	}
+
+    gl_FragColor = pixel;
+}
+
+

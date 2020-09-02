@@ -1,13 +1,11 @@
 #include <iostream>
-#ifndef  GRAPHICS_HPP
 #include <SFML\Graphics.hpp>
-#endif
 #include "Game.h"
 
-int main(int argc, char** argv) {
+int main() {
 	sf::RenderWindow* App = new sf::RenderWindow(sf::VideoMode(1300, 700), "Auximov_3D_Engine", sf::Style::Titlebar | sf::Style::Close);
 	App->setFramerateLimit(60);
-	App->setKeyRepeatEnabled(false);
+	App->setKeyRepeatEnabled(true);
 	App->setMouseCursorVisible(false);
 	Game* game = new Game(App);
 

@@ -1,61 +1,33 @@
 #include "Game.h"
-#define PI 3.14159265358979323846
 
 Game::Game(sf::RenderWindow* app) : App(app) {
-	view1.setCenter(sf::Vector2f(0,0));
-	view1.setSize(sf::Vector2f((float)App->getSize().x, (float)App->getSize().y));
-	sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
+	view1.setCenter(sf::Vector2f(0, 0));
+	view1.setSize(sf::Vector2f(App->getSize().x, App->getSize().y));
+	//view1.setSize(sf::Vector2f(App->getSize().x/4, App->getSize().y/4));
+	sf::Mouse::setPosition(sf::Vector2i(SCREEN_CENTER), *App);
 
-	tree.loadFromFile("Media/tree.png");
-	cloud.loadFromFile("Media/cloud.png");
-	BGTex.loadFromFile("Media/BG1.png"); BGTex.setRepeated(true);
-	dot.loadFromFile("Media/grass.png");
-
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(4, -3, 2), cloud, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(-2, -3, 7), cloud, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(5, -3, 0), cloud, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(3, -3, -1), cloud, 0.001));
-
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(-4, 1, -3), tree, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(3, 1, 5), tree, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(0, 1, 0), tree, 0.001));
-	RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(2, 1, -2), tree, 0.001));
-
-	player = ax::Actor(sf::Vector3f(2,-1,0), mesh, dot, 1);
-	player.SpriteResize = 0.0003;
-	player.Scale(1);
-
-	//player.pushToBuffer(RenderBuffer);
-
-	float offset = 0.09;
-	for (int x = -20; x < 30; x++) {		
-		for (int y = -20; y < 30; y++) {
-			RenderBuffer.push_back(ax::BufferVector(sf::Vector3f(x*offset, 2, y*offset), dot, 0.0003));
-		}
-	}
+	font.loadFromFile("Media/font.otf");
+	DebugLog.setFont(font); DebugLog.setFillColor(sf::Color::White);
+	DebugLog.setPosition(-650, -350);
 
 
-	BG.setPosition(-ScreenCenter.x, -ScreenCenter.y);
-	BG.setTexture(BGTex);
-}		
+}
 
 void Game::Update() {
-	FreeCameraControls();
-	std::cout << FPS << std::endl;
-	BG.setPosition(BG.getPosition().x, (-camera.angle.x*1000)-(BG.getGlobalBounds().height/2)-20);
+	camera.FreeCameraControls(delta, AxisKeys, LocalMouse, Shift, Space);
+	//DebugLog.setString("X: " + std::to_string(camera.Position.x) + ", Y: " + std::to_string(camera.Position.y) + ", Z: " + std::to_string(camera.Position.z)+ ", Angle: " + std::to_string(camera.angle.y*(180/PI)));
+	DebugLog.setString("FPS: " + std::to_string(FPS));
 
-	HKeyBG += Hkey * 0.6;
-	BG.setTextureRect(sf::IntRect((-camera.angle.y*1000)+HKeyBG, 0, 1300, 4000));
+	x.Update();
 }
 
 void Game::Rendering() {
-	App->clear();
+	App->clear(sf::Color(100, 100, 100));
 	App->setView(view1);
 
-	App->draw(BG);
+	App->draw(x.getSprite());
 
-	//Sort & Render Points Buffer
-	RenderSortPoints(RenderBuffer);
+	App->draw(DebugLog);
 
 	App->display();
 }
@@ -72,10 +44,6 @@ void Game::EventHandling() {
 		case sf::Keyboard::D: Right = true; break;
 		case sf::Keyboard::LShift: Shift = true; break;
 		case sf::Keyboard::Space: Space = true; break;
-		case sf::Keyboard::Up: LookUp = true; break;
-		case sf::Keyboard::Left: LookLeft = true; break;
-		case sf::Keyboard::Down: LookDown = true; break;
-		case sf::Keyboard::Right: LookRight = true; break;
 		}break;
 	case sf::Event::KeyReleased:
 		switch (event.key.code) {
@@ -85,77 +53,51 @@ void Game::EventHandling() {
 		case sf::Keyboard::D: Right = false; break;
 		case sf::Keyboard::LShift: Shift = false; break;
 		case sf::Keyboard::Space: Space = false; break;
-		case sf::Keyboard::Up: LookUp = false; break;
-		case sf::Keyboard::Left: LookLeft = false; break;
-		case sf::Keyboard::Down: LookDown = false; break;
-		case sf::Keyboard::Right: LookRight = false; break;
 		}break;
 	case sf::Event::MouseMoved:
-		MouseX = sf::Mouse::getPosition(*App).x - (float)ScreenCenter.x;
-		MouseY = sf::Mouse::getPosition(*App).y - (float)ScreenCenter.y;
-		sf::Mouse::setPosition(sf::Vector2i(ScreenCenter), *App);
+		LocalMouse.x = sf::Mouse::getPosition(*App).x - static_cast<float>(SCREEN_CENTER.x);
+		LocalMouse.y = sf::Mouse::getPosition(*App).y - static_cast<float>(SCREEN_CENTER.y);
+		sf::Mouse::setPosition(sf::Vector2i(SCREEN_CENTER), *App);
 		break;
 	}
 }
 
 void Game::AxisKeyCheck() {
-	if (Up && Down) {
-		Vkey = 0;
+	//Vertical
+	if (Up) {
+		if (Down) {
+			AxisKeys.y = 0;
+		}
+		else {
+			AxisKeys.y = 1;
+		}
 	}
-	else if (!Up && !Down) {
-		Vkey = 0;
-	}
-	else if (!Up && Down) {
-		Vkey = -1;
-	}
-	else if (Up && !Down) {
-		Vkey = 1;
+	else {
+		if (Down) {
+			AxisKeys.y = -1;
+		}
+		else {
+			AxisKeys.y = 0;
+		}
 	}
 
-	if (Right && Left) {
-		Hkey = 0;
-	}
-	else if (!Right && !Left) {
-		Hkey = 0;
-	}
-	else if (!Right && Left) {
-		Hkey = -1;
-	}
-	else if (Right && !Left) {
-		Hkey = 1;
-	}
-}
-
-void Game::FreeCameraControls() {
-	float RotateSpeed = 0.03 * delta;
-	float moveSpeed = 4 * delta;
-
-	//Movement
-	camera.Position.z += (cos(camera.angle.y) * moveSpeed) * (float)Vkey;
-	camera.Position.x -= (sin(camera.angle.y) * moveSpeed) * (float)Vkey;
+	//Horizontal
 	if (Right) {
-		camera.Position.z += (cos(camera.angle.y - (PI / 2)) * moveSpeed);
-		camera.Position.x -= (sin(camera.angle.y - (PI / 2)) * moveSpeed);
+		if (Left) {
+			AxisKeys.x = 0;
+		}
+		else {
+			AxisKeys.x = 1;
+		}
 	}
-	if (Left) {
-		camera.Position.z += (cos(camera.angle.y + (PI / 2)) * moveSpeed);
-		camera.Position.x -= (sin(camera.angle.y + (PI / 2)) * moveSpeed);
+	else {
+		if (Left) {
+			AxisKeys.x = -1;
+		}
+		else {
+			AxisKeys.x = 0;
+		}
 	}
-	if (Shift) camera.Position.y += moveSpeed;
-	if (Space) camera.Position.y -= moveSpeed;
-
-	//Camera Angle
-	camera.angle.y -= RotateSpeed * MouseX;
-	camera.angle.x += RotateSpeed * MouseY;
-
-	if (LookUp)camera.angle.x -= RotateSpeed * 40;
-	if (LookDown)camera.angle.x += RotateSpeed * 40;
-	if (LookLeft)camera.angle.y += RotateSpeed * 40;
-	if (LookRight)camera.angle.y -= RotateSpeed * 40;
-
-	if (camera.angle.x >= PI / 2)camera.angle.x = PI / 2;
-	if (camera.angle.x <= -PI / 2)camera.angle.x = -PI / 2;
-	MouseY = 0; MouseX = 0;
 }
 
 void Game::RenderSortPoints(std::vector<ax::BufferVector>& Buffer) {
@@ -174,13 +116,36 @@ void Game::RenderSortPoints(std::vector<ax::BufferVector>& Buffer) {
 		sf::Vector3f RotatePosX(RotatePosY);
 		RotatePosX.y = ((cos(camera.angle.x) * RotatePosY.y) + (-sin(camera.angle.x) * RotatePosY.z));
 		RotatePosX.z = ((sin(camera.angle.x) * RotatePosY.y) + (cos(camera.angle.x) * RotatePosY.z));
-		SortedBuffer.push_back(ax::BufferVector(RotatePosX, *vert.texture, vert.SpriteResize, vert.ID));
+
+		//Clip Vectors that are off distance/screen
+		sf::Sprite temp;
+		temp.setTexture(*vert.texture);
+		temp.setOrigin(temp.getGlobalBounds().width / 2, temp.getGlobalBounds().height / 2);
+
+		//Z Clipping
+		if (RotatePosX.z <= camera.FAR && RotatePosX.z >= camera.NEAR) {
+			float scale = camera.Dist(1000, RotatePosX.z) / camera.Dist(0, RotatePosX.z);
+			scale *= vert.SpriteResize;
+			temp.setScale(scale, scale);
+
+			float ProjectedLengthX = temp.getGlobalBounds().width / 2;
+			float ProjectedLengthY = temp.getGlobalBounds().height / 2;
+			//X Clipping
+			float XPosClip = (RotatePosX.x / RotatePosX.z) * 1000;
+			if (XPosClip + ProjectedLengthX >= -650 && XPosClip - ProjectedLengthX <= 650) {
+				//Y Clipping
+				float YPosClip = (RotatePosX.y / RotatePosX.z) * 1000;
+				if (YPosClip + ProjectedLengthY >= -350 && YPosClip - ProjectedLengthY <= 350) {
+					SortedBuffer.push_back(ax::BufferVector(RotatePosX, *vert.texture, vert.SpriteResize, vert.ID));
+				}
+			}
+		}
 	}
 
 	//Sort vector
 	std::sort(SortedBuffer.begin(), SortedBuffer.end(), [](ax::BufferVector& a, ax::BufferVector& b) {
 		return a.Position.z > b.Position.z;
-	});
+		});
 
 	//Render
 	for (ax::BufferVector& vert : SortedBuffer) {
@@ -188,28 +153,12 @@ void Game::RenderSortPoints(std::vector<ax::BufferVector>& Buffer) {
 		temp.setTexture(*vert.texture);
 		temp.setOrigin(temp.getGlobalBounds().width / 2, temp.getGlobalBounds().height / 2);
 
-		//Z Clipping
-		if (vert.Position.z <= camera.FAR && vert.Position.z >= camera.NEAR) {
-			float scale = camera.Dist(1000, vert.Position.z) / camera.Dist(0, vert.Position.z);
-			scale *= vert.SpriteResize;
-			temp.setScale(scale, scale);
-
-			float ProjectedLengthX = temp.getGlobalBounds().width / 2;
-			float ProjectedLengthY = temp.getGlobalBounds().height / 2;
-			//X Clipping
-			float XPosClip = (vert.Position.x / vert.Position.z) * 1000;
-			if (XPosClip + ProjectedLengthX >= -650 && XPosClip - ProjectedLengthX <= 650) {
-				//Y Clipping
-				float YPosClip = (vert.Position.y / vert.Position.z) * 1000;
-				if (YPosClip + ProjectedLengthY >= -350 && YPosClip - ProjectedLengthY <= 350) {
-
-					temp.setPosition((vert.Position.x / vert.Position.z) * 1000, (vert.Position.y / vert.Position.z) * 1000);
-					camera.window->draw(temp);
-				}
-			}
-		}
+		float scale = camera.Dist(1000, vert.Position.z) / camera.Dist(0, vert.Position.z);
+		scale *= vert.SpriteResize;
+		temp.setScale(scale, scale);
+		temp.setPosition((vert.Position.x / vert.Position.z) * 1000, (vert.Position.y / vert.Position.z) * 1000);
+		camera.window->draw(temp);
 	}
-
 }
 
 
@@ -230,7 +179,16 @@ void Game::RenderSortPoints(std::vector<ax::BufferVector>& Buffer) {
 
 
 Game::~Game() {
-	App->close();
+	//delete terrain;
 	RenderBuffer.clear();
+	App->close();
 	delete App;
 }
+
+
+
+
+
+
+
+
